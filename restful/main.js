@@ -196,7 +196,7 @@ function init() {
             applyHttpRuntimeConnectionString: applyHttpRuntimeConnectionString,
             sendHttpRuntimeRequest: sendHttpRuntimeRequest,
         },
-        created: function() {
+        created: function () {
             this.updateDeviceAPObj();
             this.updateDeviceTwinAPIObj();
             this.updateHttpRuntimeObj();
@@ -208,16 +208,29 @@ function goto(view) {
     this.router = view;
 }
 
+function getUUID() {
+    var uuid = localStorage.getItem("uuid");
+    if (uuid === null) {
+        uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        }); // RFC4122 version 4 compatible solution
+        localStorage.setItem("uuid", uuid);
+    }
+    return uuid;
+};
+
 function callAPI(account, path, method, header, body, callback) {
     var url = 'https://iothub-rest-api.azurewebsites.net/' + account + path;
+    header['x-user-guid'] = getUUID();
     $.ajax({
         url: url,
         type: method,
         headers: header,
         data: body
-    }).done(function(data, textStatus, xhr){
+    }).done(function (data, textStatus, xhr) {
         callback(xhr, true, data);
-    }).fail(function(xhr, textStatus, errorThrown) {
+    }).fail(function (xhr, textStatus, errorThrown) {
         callback(xhr, false, errorThrown);
     });
 }
@@ -327,8 +340,8 @@ function updateHttpRuntimeObj() {
         }
     }
     this.currentHttpRuntimeObj.header = JSON.stringify(header, null, 4);
-    this.currentHttpRuntimeObj.body = this.httpRuntimeObj[this.httpRuntimeName].body ? 
-            (typeof body === 'object' ? JSON.stringify(body, null, 4) : body) : '';
+    this.currentHttpRuntimeObj.body = this.httpRuntimeObj[this.httpRuntimeName].body ?
+        (typeof body === 'object' ? JSON.stringify(body, null, 4) : body) : '';
     this.httpRuntimeResponse = {};
 }
 
@@ -359,7 +372,7 @@ function applyDeviceAPIConnectionString() {
         return;
     }
 
-    appInsights.trackEvent('restfulApply', {account: connectionObject.account, api: 'device'});
+    appInsights.trackEvent('restfulApply', { account: connectionObject.account, api: 'device' });
 
     this.deviceAPIAccount = connectionObject.account;
     this.deviceAPIKeyName = connectionObject.keyName;
@@ -382,7 +395,7 @@ function applyDeviceTwinAPIConnectionString() {
         return;
     }
 
-    appInsights.trackEvent('restfulApply', {account: connectionObject.account, api: 'deviceTwin'});
+    appInsights.trackEvent('restfulApply', { account: connectionObject.account, api: 'deviceTwin' });
 
     this.deviceTwinAPIAccount = connectionObject.account;
     this.deviceTwinAPIKeyName = connectionObject.keyName;
@@ -405,7 +418,7 @@ function applyHttpRuntimeConnectionString() {
         return;
     }
 
-    appInsights.trackEvent('restfulApply', {account: connectionObject.account, api: 'httpRuntime'});
+    appInsights.trackEvent('restfulApply', { account: connectionObject.account, api: 'httpRuntime' });
 
     this.httpRuntimeAccount = connectionObject.account;
     this.httpRuntimeKeyName = connectionObject.keyName;
@@ -425,20 +438,20 @@ function sendDeviceAPIRequest() {
     var scope = this;
     try {
         var header = JSON.parse(this.currentDeviceAPIObj.header);
-    } catch(e) {
+    } catch (e) {
         alert('Request header is not valid JSON string');
         return;
     }
 
     try {
         var body = this.currentDeviceAPIObj.body ? JSON.stringify(JSON.parse(this.currentDeviceAPIObj.body)) : null;
-    } catch(e) {
+    } catch (e) {
         alert('Request body is not valid JSON string');
         return;
     }
-    
+
     this.deviceAPIResponse = {};
-    callAPI(this.deviceAPIAccount, this.currentDeviceAPIObj.path, this.currentDeviceAPIObj.method, header, body, function(xhr, success, data) {
+    callAPI(this.deviceAPIAccount, this.currentDeviceAPIObj.path, this.currentDeviceAPIObj.method, header, body, function (xhr, success, data) {
         scope.$set(scope.deviceAPIResponse, 'status', xhr.status);
         scope.$set(scope.deviceAPIResponse, 'body', typeof data === 'object' ? JSON.stringify(data, null, 4) : data);
     });
@@ -448,20 +461,20 @@ function sendDeviceTwinAPIRequest() {
     var scope = this;
     try {
         var header = JSON.parse(this.currentDeviceTwinAPIObj.header);
-    } catch(e) {
+    } catch (e) {
         alert('Request header is not valid JSON string');
         return;
     }
 
     try {
         var body = this.currentDeviceTwinAPIObj.body ? JSON.stringify(JSON.parse(this.currentDeviceTwinAPIObj.body)) : null;
-    } catch(e) {
+    } catch (e) {
         alert('Request body is not valid JSON string');
         return;
     }
-    
+
     this.deviceTwinAPIResponse = {};
-    callAPI(this.deviceTwinAPIAccount, this.currentDeviceTwinAPIObj.path, this.currentDeviceTwinAPIObj.method, header, body, function(xhr, success, data) {
+    callAPI(this.deviceTwinAPIAccount, this.currentDeviceTwinAPIObj.path, this.currentDeviceTwinAPIObj.method, header, body, function (xhr, success, data) {
         scope.$set(scope.deviceTwinAPIResponse, 'status', xhr.status);
         scope.$set(scope.deviceTwinAPIResponse, 'body', typeof data === 'object' ? JSON.stringify(data, null, 4) : data);
     });
@@ -471,19 +484,19 @@ function sendHttpRuntimeRequest() {
     var scope = this;
     try {
         var header = JSON.parse(this.currentHttpRuntimeObj.header);
-    } catch(e) {
+    } catch (e) {
         alert('Request header is not valid JSON string');
         return;
     }
 
     try {
         var body = this.currentHttpRuntimeObj.body ? JSON.stringify(JSON.parse(this.currentHttpRuntimeObj.body)) : null;
-    } catch(e) {
+    } catch (e) {
         var body = this.currentHttpRuntimeObj.body;
     }
-    
+
     this.httpRuntimeResponse = {};
-    callAPI(this.httpRuntimeAccount, this.currentHttpRuntimeObj.path, this.currentHttpRuntimeObj.method, header, body, function(xhr, success, data) {
+    callAPI(this.httpRuntimeAccount, this.currentHttpRuntimeObj.path, this.currentHttpRuntimeObj.method, header, body, function (xhr, success, data) {
         scope.$set(scope.httpRuntimeResponse, 'status', xhr.status);
         scope.$set(scope.httpRuntimeResponse, 'body', typeof data === 'object' ? JSON.stringify(data, null, 4) : data);
     });

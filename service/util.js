@@ -90,6 +90,7 @@ define(["require", "exports"], function (require, exports) {
             }
             header = header || {};
             header.Authorization = sasToken;
+            header['x-user-guid'] = this.getUUID();
             fail = fail || function () { };
             jQuery.ajax({
                 url: url,
@@ -97,6 +98,17 @@ define(["require", "exports"], function (require, exports) {
                 headers: header,
                 data: body
             }).done(success).fail(fail);
+        };
+        Util.getUUID = function () {
+            var uuid = localStorage.getItem("uuid");
+            if (uuid === null) {
+                uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                }); // RFC4122 version 4 compatible solution
+                localStorage.setItem("uuid", uuid);
+            }
+            return uuid;
         };
         return Util;
     })();
