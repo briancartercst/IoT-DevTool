@@ -108,7 +108,7 @@ function callAPI(connectionInfo, path, method, header, body, callback) {
         body = null;
     }
     header = header || {};
-    header['x-user-guid'] = getUUID();
+    header['x-user-guid'] = getUUID(); // guid
     header.Authorization = getSASToken(connectionInfo);
     $.ajax({
         url: url,
