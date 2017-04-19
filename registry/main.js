@@ -81,6 +81,18 @@ function getInfoFromConnectionString(connectionString) {
     };
 }
 
+function getUUID() {
+    var uuid = localStorage.getItem("uuid");
+    if (uuid === null) {
+        uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        }); // RFC4122 version 4 compatible solution
+        localStorage.setItem("uuid", uuid);
+    }
+    return uuid;
+};
+
 function callAPI(connectionInfo, path, method, header, body, callback) {
     var url = 'https://iothub-rest-api.azurewebsites.net/' + connectionInfo.account + path;
     if (typeof header === 'function') {
@@ -96,6 +108,7 @@ function callAPI(connectionInfo, path, method, header, body, callback) {
         body = null;
     }
     header = header || {};
+    header['x-user-guid'] = getUUID();
     header.Authorization = getSASToken(connectionInfo);
     $.ajax({
         url: url,
